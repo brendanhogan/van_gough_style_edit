@@ -3,7 +3,7 @@
 
 from cog import BasePredictor, Input, Path
 import torch
-from pathlib import Path
+from pathlib import Path as pth
 from diffusers.utils import load_image
 from PIL import Image
 import numpy as np
@@ -32,6 +32,7 @@ def setup_pipeline():
     depth_path = "lllyasviel/control_v11f1p_sd15_depth"
     canny_path = "lllyasviel/control_v11p_sd15_canny"
     pose_path = "lllyasviel/sd-controlnet-openpose"
+
 
     # Control pipes 
     pix_2_pix_control = ControlNetModel.from_pretrained(pip_2_pix_path, torch_dtype=torch.float16)
@@ -71,7 +72,7 @@ def load_image(image):
             image = Image.open(requests.get(image, stream=True).raw)
         else:
             image = Image.open(image)
-    elif isinstance(image, Path):
+    elif isinstance(image, pth):
         image = Image.open(image)
     elif isinstance(image, np.ndarray):
         image = Image.fromarray(image)
@@ -106,7 +107,7 @@ def get_control_images(image, depth_estimator, pose_detector):
     canny_image = Image.fromarray(canny_image)
 
     # Pose control image
-    pose_image = openpose(image)
+    pose_image = pose_detector(image)
 
     # All images as list 
     input_images = [img2img_control, control_depth_control_image, canny_image, pose_image]
@@ -156,12 +157,12 @@ class Predictor(BasePredictor):
 
     def predict(
         self,
-        image_pth: str = Input(description="Link or path to image to process"),
+        image_pth: Path = Input(description="Link or path to image to process"),
 
     ) -> Path:
         """Run a single prediction on the model"""
         # 1. Download image from url, and resize 
-        image = load_image(image_pth)
+        image = Image.open(image_pth)
         image = image.resize((512, 512))
 
         # 2. Setup all control images 
@@ -179,6 +180,8 @@ class Predictor(BasePredictor):
         output_image_high_res = upscale_image(self.upscaler,output_image)
 
         # 6. Return image 
-        output_image_high_res.save("high_res_output.png")
-        return output_image_high_res
+        output_path = f"/tmp/high_res_output.png"
+        output_image_high_res.save(output_path)
+
+        return Path(output_path)
 
