@@ -36,7 +36,7 @@ This particular example is tuned to more heavily be influence by Van Gough's sty
 
 Original      |  Van Gough   
 :-------------------------:|:-------------------------:
-![Alt Text](imgs/img.jpg)  |  ![Alt Text](imgs/high_res_output.png)
+![Alt Text](imgs/img.jpg)  |  ![Alt Text](imgs/output.png)
 
 ## Next Steps
 The results could be greatly improved by tuning the weights of the different control nets, as well as significant efforts in prompt engineering.

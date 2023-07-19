@@ -43,7 +43,7 @@ def setup_pipeline():
 
     # Final pipeline 
     pipe = StableDiffusionControlNetPipeline.from_pretrained(
-        "runwayml/stable-diffusion-v1-5", controlnet=control_nets, torch_dtype=torch.float16
+        "stablediffusionapi/realistic-vision-v40", controlnet=control_nets, torch_dtype=torch.float16
     ).to("cuda")
 
     # Better memory usage 
@@ -149,7 +149,7 @@ class Predictor(BasePredictor):
 
         # Setup pipeline and upscaler 
         self.pipe = setup_pipeline() 
-        self.upscaler = setup_upscaler()
+        # self.upscaler = setup_upscaler()
 
         # Setup depth estimatior and pose detector
         self.depth_estimator = pipeline('depth-estimation')
@@ -169,19 +169,19 @@ class Predictor(BasePredictor):
         control_images = get_control_images(image, self.depth_estimator, self.pose_detector)
 
         # 3. Setup parameters for run (weights, prompts - these need to be tuned)
-        control_net_scales = [.1,.3,.55,.4]
-        prompt = "a van gough style painting of a person, swirling colors, texture, van gough style, ultra quality, sharp focus, tack sharp, dof, film grain, crystal clear,van gough style 8K UHD, highly detailed glossy eyes, high detailed skin, artistic"
+        control_net_scales = [.1,.3,.6,.4]
+        prompt = "a van gough style painting of a person, swirling colors, texture,"
         negative_prompt = "disfigured, ugly, bad, immature, cartoon, anime, 3d, painting, b&w"
 
         # 4. Run control net pipe 
         output_image = self.pipe(prompt,control_images, num_inference_steps=30, generator=torch.Generator(device="cpu").manual_seed(1), negative_prompt=negative_prompt,controlnet_conditioning_scale=control_net_scales).images[0]
 
         # 5. Upscale image
-        output_image_high_res = upscale_image(self.upscaler,output_image)
+        # output_image_high_res = upscale_image(self.upscaler,output_image)
 
         # 6. Return image 
         output_path = f"/tmp/high_res_output.png"
-        output_image_high_res.save(output_path)
+        output_image.save(output_path)
 
         return Path(output_path)
 
